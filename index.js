@@ -268,5 +268,5 @@ function httpHandler(store, req, res) {
   })
 }
 
-if (require.main === module) kinesalite().listen(4567)
+if (require.main === module) kinesalite().listen(4568)
 
