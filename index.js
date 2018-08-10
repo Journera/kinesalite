@@ -10,7 +10,7 @@ var https = require('https'),
 
 var MAX_REQUEST_BYTES = 7 * 1024 * 1024
 
-var validApis = ['Firehose_20150804'],
+var validApis = ['Firehose_20150804', 'Kinesis_20131202'],
     validOperations = ['AddTagsToStream', 'CreateStream', 'DeleteStream', 'DescribeStream', 'GetRecords',
       'GetShardIterator', 'ListShards', 'ListStreams', 'ListTagsForStream', 'MergeShards', 'PutRecord', 'PutRecords',
       'RemoveTagsFromStream', 'SplitShard', 'IncreaseStreamRetentionPeriod', 'DecreaseStreamRetentionPeriod'],
