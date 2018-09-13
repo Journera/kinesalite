@@ -12,7 +12,7 @@ var MAX_REQUEST_BYTES = 7 * 1024 * 1024
 
 var validApis = ['Firehose_20150804', 'Kinesis_20131202'],
     validOperations = ['AddTagsToStream', 'CreateStream', 'DeleteStream', 'DescribeStream', 'GetRecords',
-      'GetShardIterator', 'ListShards', 'ListStreams', 'ListTagsForStream', 'MergeShards', 'PutRecord', 'PutRecords',
+      'GetShardIterator', 'ListShards', 'ListStreams', 'ListTagsForStream', 'MergeShards', 'PutRecord', 'PutRecordBatch',
       'RemoveTagsFromStream', 'SplitShard', 'IncreaseStreamRetentionPeriod', 'DecreaseStreamRetentionPeriod'],
     actions = {},
     actionValidations = {}

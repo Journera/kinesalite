@@ -1,19 +1,19 @@
 var BigNumber = require('bignumber.js'),
     db = require('../db')
 
-module.exports = function putRecords(store, data, cb) {
+module.exports = function putRecordBatch(store, data, cb) {
 
   var key = data.StreamName, metaDb = store.metaDb, streamDb = store.getStreamDb(data.StreamName)
 
   metaDb.lock(key, function(release) {
     cb = release(cb)
 
-    store.getStream(data.StreamName, function(err, stream) {
+    store.getStream(data.DeliveryStreamName, function(err, stream) {
       if (err) return cb(err)
 
       if (!~['ACTIVE', 'UPDATING'].indexOf(stream.StreamStatus)) {
         return cb(db.clientError('ResourceNotFoundException',
-          'Stream ' + data.StreamName + ' under account ' + metaDb.awsAccountId + ' not found.'))
+          'Stream ' + data.DeliveryStreamName + ' under account ' + metaDb.awsAccountId + ' not found.'))
       }
 
       var batchOps = new Array(data.Records.length), returnRecords = new Array(data.Records.length),
@@ -21,18 +21,7 @@ module.exports = function putRecords(store, data, cb) {
 
       for (i = 0; i < data.Records.length; i++) {
         record = data.Records[i]
-
-        if (record.ExplicitHashKey != null) {
-          hashKey = new BigNumber(record.ExplicitHashKey)
-
-          if (hashKey.comparedTo(0) < 0 || hashKey.comparedTo(new BigNumber(2).pow(128)) >= 0) {
-            return cb(db.clientError('InvalidArgumentException',
-              'Invalid ExplicitHashKey. ExplicitHashKey must be in the range: [0, 2^128-1]. ' +
-              'Specified value was ' + record.ExplicitHashKey))
-          }
-        } else {
-          hashKey = db.partitionKeyToHashKey(record.PartitionKey)
-        }
+        hashKey = db.partitionKeyToHashKey("fixed-partition-key")
 
         for (var j = 0; j < stream.Shards.length; j++) {
           if (stream.Shards[j].SequenceNumberRange.EndingSequenceNumber == null &&
@@ -67,6 +56,7 @@ module.exports = function putRecords(store, data, cb) {
         for (i = 0; i < data.Records.length; i++) {
           record = data.Records[i]
           seqPiece = seqPieces[i]
+          console.log('Publish %s', record.Data)
 
           if (seqPiece.shardIx != shardIx) continue
 
@@ -91,13 +81,13 @@ module.exports = function putRecords(store, data, cb) {
             type: 'put',
             key: streamKey,
             value: {
-              PartitionKey: record.PartitionKey,
+              PartitionKey: "fixed-partition-key",
               Data: record.Data,
               ApproximateArrivalTimestamp: now / 1000,
             },
           }
 
-          returnRecords[i] = {ShardId: seqPiece.shardId, SequenceNumber: seqNum}
+          returnRecords[i] = {RecordId: seqNum}
         }
       })
 
@@ -106,7 +96,7 @@ module.exports = function putRecords(store, data, cb) {
 
         streamDb.batch(batchOps, {}, function(err) {
           if (err) return cb(err)
-          cb(null, {FailedRecordCount: 0, Records: returnRecords})
+          cb(null, {FailedPutCount: 0, RequestResponses: returnRecords})
         })
       })
     })
