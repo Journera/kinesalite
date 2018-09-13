@@ -3,7 +3,7 @@ var BigNumber = require('bignumber.js'),
 
 module.exports = function putRecordBatch(store, data, cb) {
 
-  var key = data.StreamName, metaDb = store.metaDb, streamDb = store.getStreamDb(data.StreamName)
+  var key = data.DeliveryStreamName, metaDb = store.metaDb, streamDb = store.getStreamDb(data.DeliveryStreamName)
 
   metaDb.lock(key, function(release) {
     cb = release(cb)
